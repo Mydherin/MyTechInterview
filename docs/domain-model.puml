@@ -1,0 +1,84 @@
+@startuml domain-model
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Gym Enterprise – Domain Model
+
+class Enterprise {
+  id: UUID
+  name: string
+  createdAt: datetime
+  deletedAt: datetime?
+  --
+  (logical aggregate root)
+}
+
+class Gym {
+  id: UUID
+  enterpriseId: UUID
+  name: string
+  location: string
+  createdAt: datetime
+  deletedAt: datetime?
+}
+
+class Employee {
+  id: UUID
+  enterpriseId: UUID
+  gymId: UUID?
+  name: string
+  createdAt: datetime
+  deletedAt: datetime?
+  --
+  gymId = assigned workplace
+}
+
+class Customer {
+  id: UUID
+  enterpriseId: UUID
+  name: string
+  createdAt: datetime
+  deletedAt: datetime?
+}
+
+class Rate {
+  id: UUID
+  enterpriseId: UUID
+  name: string
+  price: decimal?
+  createdAt: datetime
+  deletedAt: datetime?
+  --
+  global for all gyms
+}
+
+class Contract {
+  id: UUID
+  customerId: UUID
+  rateId: UUID
+  signedByEmployeeId: UUID
+  signedAtGymId: UUID
+  status: enum (ACTIVE | FINISHED)
+  startDate: date
+  endDate: date?
+  createdAt: datetime
+  deletedAt: datetime?
+  --
+  Must be FINISHED before
+  customer can be deleted
+}
+
+Enterprise "1" --> "*" Gym : has
+Enterprise "1" --> "*" Employee : has
+Enterprise "1" --> "*" Customer : has
+Enterprise "1" --> "*" Rate : has
+
+Employee "1" --> "*" Contract : signs
+Employee "*" --> "1" Gym : works at
+
+Customer "1" --> "*" Contract : has
+Rate "1" --> "*" Contract : used in
+Gym "1" --> "*" Contract : signed at
+
+@enduml
